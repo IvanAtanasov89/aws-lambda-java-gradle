@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Copies any file put into a bucket but adds a suffix of new
+Resources:
+  ProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: S3EventProcessor
+      Runtime: java8
+      MemorySize: 400
+      Timeout: 100
+      CodeUri: s3://ivansdata/aws-lambda-java-gradle-1.0.0.zip
+      Policies:
+       - Version: '2012-10-17'
+         Statement:
+           - Effect: Allow
+             Action:
+               - s3:GetObject
+               - s3:PutObject
+             Resource: 'arn:aws:s3:::lammytest/*'
+      Events:
+        ObjectAdded:
+          Type: S3
+          Properties:
+            Bucket: !Ref Bucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: 'to-copy'
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "lammytest"
